@@ -1,6 +1,50 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
+
+
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+  constructor() {
+    super({
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req) => req?.cookies?.access_token,
+      ]),
+      secretOrKey: 'SECRET_KEY_123',
+    });
+  }
+
+  validate(payload: any) {
+    return payload;
+  }
+}
+
+
+
+// @Injectable()  
+// export class LocalStrategy extends PassportStrategy(Strategy) {  
+//   constructor(private authService: AuthService) {  
+//     super({ usernameField: 'email' }); 
+//   }  
+//   async validate(email: string, password: string): Promise<any> {  
+//     const user = await this.authService.login({ email, password });
+//     // console.log('Validating user in LocalStrategy:', user); 
+//     if (!user) {  
+//       console.log('Invalid credentials provided');
+//       throw new UnauthorizedException();  
+//     }  
+//     return user;  
+//   }  
+// }
+
+
+
 
 // import { Injectable } from '@nestjs/common';
 // import { PassportStrategy } from '@nestjs/passport';
@@ -41,24 +85,3 @@
 //     };
 //   }
 // }
-
-import { PassportStrategy } from '@nestjs/passport';  
-import { Strategy } from 'passport-local';  
-import { Injectable, UnauthorizedException } from '@nestjs/common';  
-import { AuthService } from './auth.service';  
-
-@Injectable()  
-export class LocalStrategy extends PassportStrategy(Strategy) {  
-  constructor(private authService: AuthService) {  
-    super({ usernameField: 'email' }); 
-  }  
-  async validate(email: string, password: string): Promise<any> {  
-    const user = await this.authService.login({ email, password });
-    console.log('Validating user in LocalStrategy:', user); 
-    if (!user) {  
-      console.log('Invalid credentials provided');
-      throw new UnauthorizedException();  
-    }  
-    return user;  
-  }  
-}

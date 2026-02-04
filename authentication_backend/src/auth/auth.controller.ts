@@ -1,44 +1,82 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
+
+
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-// import { LoginAuthDto } from './dto/login-auth.dto';
-import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req,  Res,  UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-// import { LoginAuthDto } from './dto/login-auth.dto';
+import { JwtAuthGuard } from './jwt-auth.gaurd';
+import { CreateAuthDto } from './dto/create-auth.dto';
+
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
+    @Post('/register')
   registerUser(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.createUser(createAuthDto);
   }
 
-  // @Post('login')
-  // loginUser(@Body() loginAuthDto: LoginAuthDto) {
-  //   return this.authService.login(loginAuthDto);
-  // }
-  @UseGuards(AuthGuard('local'))  
   @Post('/login')
-  loginUser(@Request() req: any): any {
-    console.log('User:', req.user);
-    req.session.user = req.user;
+  @UseGuards(AuthGuard('local'))
+  login(@Req() req, @Res({ passthrough: true }) res) {
+    const token = this.authService.generateToken(req.user);
+
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false, 
+      maxAge: 5 * 60 * 1000,
+    });
+
     return { message: 'Login successful' };
   }
 
-  @Post('logout')
-  logout(@Request() req): any {
-    req.session.destroy();
-    return { message: 'Logout successful' };
+  @Post('/logout')
+  logout(@Res({ passthrough: true }) res) {
+    res.clearCookie('access_token');
+    return { message: 'Logged out' };
   }
 
-  @UseGuards(AuthGuard('local')) 
-  @Get()
-  getWelcome() {
-    return 'Welcome to the Auth Service';
+  @Get('/me')
+  @UseGuards(JwtAuthGuard)
+  getProfile(@Req() req) {
+    return req.user;
   }
 }
+
+
+// @Controller('auth')
+// export class AuthController {
+//   constructor(private readonly authService: AuthService) { }
+
+
+
+//   // @Post('login')
+//   // loginUser(@Body() loginAuthDto: LoginAuthDto) {
+//   //   return this.authService.login(loginAuthDto);
+//   // }
+//   @UseGuards(AuthGuard('local'))  
+//   @Post('/login')
+//   loginUser(@Request() req: any): any {
+//     console.log('User:', req.user);
+//     req.session.user = req.user;
+//     return { message: 'Login successful' , };
+//   }
+
+//   @Post('logout')
+//   logout(@Request() req): any {
+//     req.session.destroy();
+//     return { message: 'Logout successful' };
+//   }
+
+//   @UseGuards(AuthGuard('local')) 
+//   @Get()
+//   getWelcome() {
+//     return 'Welcome to the Auth Service';
+//   }
+// }

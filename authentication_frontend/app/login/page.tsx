@@ -26,7 +26,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { loginUserThunk, resetAuthState } from "../../redux/authSlice";
+import { loginUserThunk, fetchMeThunk, resetAuthState } from "../../redux/authSlice";
 
 const LoginSchema = z.object({
   email: z.string().email("Email is invalid"),
@@ -39,7 +39,7 @@ export default function Login() {
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const { loading, success, error, message, user } = useAppSelector(
+  const { loading, success, error } = useAppSelector(
     (state) => state.auth
   );
 
@@ -70,17 +70,21 @@ export default function Login() {
       setSnackbarOpen(true);
     }
 
-    if (success && user) {
-      setSnackbarMessage(message || "Login successful");
+    if (success) {
+      setSnackbarMessage("Login successful");
       setSnackbarSeverity("success");
       setSnackbarOpen(true);
+
+      dispatch(fetchMeThunk());
+
       reset();
+      router.push("/");
     }
 
     return () => {
       dispatch(resetAuthState());
     };
-  }, [success, error, message, user, router, reset, dispatch]);
+  }, [success, error, dispatch, reset, router]);
 
   return (
     <>
@@ -108,9 +112,7 @@ export default function Login() {
                 {...register("password")}
                 endAdornment={
                   <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
+                    <IconButton onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
@@ -137,9 +139,9 @@ export default function Login() {
                 fontWeight: "bold",
               }}
             >
-              New to Flipkart?{" "}
+              New user?{" "}
               <Link
-                href="/authentication/register"
+                href="/register"
                 style={{
                   textDecoration: "none",
                   color: "rgba(40, 116, 240)",

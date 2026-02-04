@@ -1,4 +1,4 @@
-
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -43,7 +43,7 @@ type RegisterFormData = z.infer<typeof RegisterUserSchema>;
 
 export default function Register() {
   const dispatch = useAppDispatch();
-  const { loading, success, error, message } = useAppSelector(
+  const { loading, success, error } = useAppSelector(
     (state) => state.auth
   );
 
@@ -64,30 +64,23 @@ export default function Register() {
   });
 
   const handleRegister = (data: RegisterFormData) => {
-    dispatch(
-      registerUserThunk({
-        username: data.username,
-        useremail: data.useremail,
-        userPassword: data.userPassword,
-      })
-    );
+    dispatch(registerUserThunk(data));
   };
-
 
   useEffect(() => {
     if (error) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSnackbarMessage(error);
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     }
 
     if (success) {
-      setSnackbarMessage(message || "Registration successful");
+      setSnackbarMessage("Registration successful");
       setSnackbarSeverity("success");
       setSnackbarOpen(true);
 
       reset();
+
       setTimeout(() => {
         router.push("/login");
       }, 800);
@@ -96,7 +89,7 @@ export default function Register() {
     return () => {
       dispatch(resetAuthState());
     };
-  }, [success, error, message, dispatch, reset, router]);
+  }, [success, error, dispatch, reset, router]);
 
   return (
     <>
@@ -133,9 +126,7 @@ export default function Register() {
                 {...register("userPassword")}
                 endAdornment={
                   <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
+                    <IconButton onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
@@ -162,7 +153,7 @@ export default function Register() {
                 fontWeight: "bold",
               }}
             >
-              Existing User ?{" "}
+              Existing user?{" "}
               <Link
                 href="/login"
                 style={{
